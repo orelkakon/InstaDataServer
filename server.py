@@ -23,6 +23,11 @@ def delete_profile(username):
             return
 
 
+@app.route('/')
+def hello():
+    return 'Welcome InstaData Server'
+
+
 @app.route('/sanity')
 def sanity():
     write_log('info', 'start sanity route')
