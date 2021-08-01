@@ -2,8 +2,10 @@ import instaloader
 
 from flask import Flask, request
 from utils.logger import write_log
-
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # all users are connected
 profiles = []
@@ -24,17 +26,20 @@ def delete_profile(username):
 
 
 @app.route('/')
+@cross_origin()
 def hello():
     return 'Welcome InstaData Server'
 
 
 @app.route('/sanity')
+@cross_origin()
 def sanity():
     write_log('info', 'start sanity route')
     return 'InstaData Server Running'
 
 
 @app.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     write_log('info', 'start login route')
     username = request.json["username"]
@@ -47,10 +52,12 @@ def login():
         profiles.append((username, profile))
         return 'success'
     except:
+        write_log('info', 'wrong details')
         return 'failed'
 
 
 @app.route('/logout', methods=['POST'])
+@cross_origin()
 def logout():
     write_log('info', 'start logout route')
     username = request.json["username"]
