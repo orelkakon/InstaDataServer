@@ -1,13 +1,13 @@
 import instaloader
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from utils.logger import write_log
 from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-# all users are connected
+# all users profile are connected
 profiles = []
 
 
@@ -35,7 +35,7 @@ def hello():
 @cross_origin()
 def sanity():
     write_log('info', 'start sanity route')
-    return 'InstaData Server Running'
+    return 'InstaData Server Running 🤳'
 
 
 @app.route('/login', methods=['POST'])
@@ -63,6 +63,57 @@ def logout():
     username = request.json["username"]
     delete_profile(username)
     return 'success'
+
+
+@app.route('/getmyfollowers', methods=['GET'])
+@cross_origin()
+def get_my_followers():
+    write_log('info', 'start getmyfollowers route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    followers = profile.get_followers()
+    result = []
+    for follower in followers:
+        result.append(follower.username)
+    result = [str(x) for x in result]
+    return jsonify(result)
+
+
+@app.route('/getmyfollowings', methods=['GET'])
+@cross_origin()
+def get_my_followings():
+    write_log('info', 'start getmyfollowing route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    followings = profile.get_followees()
+    result = []
+    for following in followings:
+        result.append(following.username)
+    result = [str(x) for x in result]
+    return jsonify(result)
+
+
+@app.route('/getmyimgprofile', methods=['GET'])
+@cross_origin()
+def get_my_img_profile():
+    write_log('info', 'start getmyimgprofile route')
+    username = request.json["username"]
+    print(username)
+    profile = get_profile(username)
+    return profile.profile_pic_url
+
+
+@app.route('/getmyposts', methods=['GET'])
+@cross_origin()
+def get_my_posts():
+    write_log('info', 'start getmyposts route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    posts = profile.get_posts()
+    data = []
+    for post in posts:
+        data.append((post.url, post.likes, post.comments, post.mediaid))
+    return jsonify(data)
 
 
 if __name__ == '__main__':
