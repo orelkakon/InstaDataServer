@@ -1,6 +1,8 @@
 import instaloader
 
 from flask import Flask, request, jsonify
+from instaloader import TopSearchResults
+
 from utils.logger import write_log
 from flask_cors import CORS, cross_origin
 app = Flask(__name__)
@@ -9,6 +11,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 # all users profile are connected
 profiles = []
+insta_data = instaloader.Instaloader()
 
 
 def get_profile(username):
@@ -45,7 +48,6 @@ def login():
     username = request.json["username"]
     password = request.json["password"]
     write_log('info', username + ", " + password + " - try to connect")
-    insta_data = instaloader.Instaloader()
     try:
         insta_data.login(username, password)
         profile = instaloader.Profile.from_username(insta_data.context, username)
@@ -65,7 +67,7 @@ def logout():
     return 'success'
 
 
-@app.route('/getmyfollowers', methods=['GET'])
+@app.route('/getmyfollowers', methods=['POST'])
 @cross_origin()
 def get_my_followers():
     write_log('info', 'start getmyfollowers route')
@@ -79,7 +81,7 @@ def get_my_followers():
     return jsonify(result)
 
 
-@app.route('/getmyfollowings', methods=['GET'])
+@app.route('/getmyfollowings', methods=['POST'])
 @cross_origin()
 def get_my_followings():
     write_log('info', 'start getmyfollowing route')
@@ -93,17 +95,16 @@ def get_my_followings():
     return jsonify(result)
 
 
-@app.route('/getmyimgprofile', methods=['GET'])
+@app.route('/getmyimgprofile', methods=['POST'])
 @cross_origin()
 def get_my_img_profile():
     write_log('info', 'start getmyimgprofile route')
     username = request.json["username"]
-    print(username)
     profile = get_profile(username)
     return profile.profile_pic_url
 
 
-@app.route('/getmyposts', methods=['GET'])
+@app.route('/getmyposts', methods=['POST'])
 @cross_origin()
 def get_my_posts():
     write_log('info', 'start getmyposts route')
@@ -112,8 +113,73 @@ def get_my_posts():
     posts = profile.get_posts()
     data = []
     for post in posts:
-        data.append((post.url, post.likes, post.comments, post.mediaid))
+        data.append((post.url, post.date, post.likes, post.comments, post.mediaid))
     return jsonify(data)
+
+
+@app.route('/getmytaggedposts', methods=['POST'])
+@cross_origin()
+def get_my_tagged_posts():
+    write_log('info', 'start getmytaggedposts route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    posts = profile.get_tagged_posts()
+    data = []
+    for post in posts:
+        data.append((post.url, post.owner_username, post.date, post.likes, post.comments, post.mediaid))
+    return jsonify(data)
+
+
+@app.route('/getmysavedposts', methods=['POST'])
+@cross_origin()
+def get_my_saved_posts():
+    write_log('info', 'start getmysavedposts route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    posts = profile.get_saved_posts()
+    data = []
+    for post in posts:
+        data.append((post.url, post.owner_username, post.date, post.likes, post.comments, post.mediaid))
+    return jsonify(data)
+
+
+@app.route('/gettopsearch', methods=['POST'])
+@cross_origin()
+def get_top_search():
+    write_log('info', 'start gettopsearch route')
+    search = request.json["search"]
+    data = TopSearchResults(insta_data.context, search).get_profiles()
+    result = []
+    for prof in data:
+        result.append(prof.username)
+    result = [str(x) for x in result]
+    return jsonify(result)
+
+
+@app.route('/gettoplocation', methods=['POST'])
+@cross_origin()
+def get_top_location():
+    write_log('info', 'start gettoplocation route')
+    search = request.json["search"]
+    data = TopSearchResults(insta_data.context, search).get_locations()
+    result = []
+    for location in data:
+        result.append(location.name)
+    result = [str(x) for x in result]
+    return jsonify(result)
+
+
+@app.route('/gettophashtag', methods=['POST'])
+@cross_origin()
+def get_top_hashtag():
+    write_log('info', 'start gettophashtag route')
+    search = request.json["search"]
+    data = TopSearchResults(insta_data.context, search).get_hashtag_strings()
+    result = []
+    for hashtag in data:
+        result.append(hashtag)
+    result = [str(x) for x in result]
+    return jsonify(result)
 
 
 if __name__ == '__main__':
