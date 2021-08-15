@@ -149,10 +149,17 @@ def get_top_search():
     write_log('info', 'start gettopsearch route')
     search = request.json["search"]
     data = TopSearchResults(insta_data.context, search).get_profiles()
-    result = []
+    result = {}
+    profs = []
+    ids = []
+    privates = []
     for prof in data:
-        result.append(prof.username)
-    result = [str(x) for x in result]
+        profs.append(prof.username)
+        ids.append(prof.userid)
+        privates.append(prof.is_private)
+    result['names'] = profs
+    result['ids'] = ids
+    result['privates'] = privates
     return jsonify(result)
 
 
@@ -162,10 +169,14 @@ def get_top_location():
     write_log('info', 'start gettoplocation route')
     search = request.json["search"]
     data = TopSearchResults(insta_data.context, search).get_locations()
-    result = []
+    result = {}
+    names = []
+    ids = []
     for location in data:
-        result.append(location.name)
-    result = [str(x) for x in result]
+        names.append(location.name)
+        ids.append(location.id)
+    result['names'] = names
+    result['ids'] = ids
     return jsonify(result)
 
 
@@ -174,11 +185,15 @@ def get_top_location():
 def get_top_hashtag():
     write_log('info', 'start gettophashtag route')
     search = request.json["search"]
-    data = TopSearchResults(insta_data.context, search).get_hashtag_strings()
-    result = []
+    data = TopSearchResults(insta_data.context, search).get_hashtags()
+    result = {}
+    hashtags = []
+    ids = []
     for hashtag in data:
-        result.append(hashtag)
-    result = [str(x) for x in result]
+        hashtags.append(hashtag.name)
+        ids.append(hashtag.hashtagid)
+    result['names'] = hashtags
+    result['ids'] = ids
     return jsonify(result)
 
 
