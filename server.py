@@ -113,7 +113,28 @@ def get_my_posts():
     posts = profile.get_posts()
     data = []
     for post in posts:
-        data.append((post.url, post.date, post.likes, post.comments, post.mediaid))
+        data.append((post.url, post.likes, post.comments, post.mediaid))
+    return jsonify(data)
+
+
+@app.route('/getmydataposts', methods=['POST'])
+@cross_origin()
+def get_my_data_posts():
+    write_log('info', 'start getmydataposts route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    posts = profile.get_posts()
+    data = []
+    for post in posts:
+        likes_post = []
+        comments_post = []
+        likes = post.get_likes()
+        for like in likes:
+            likes_post.append((like.username, like.followed_by_viewer))
+        comments = post.get_comments()
+        for comment in comments:
+            comments_post.append((comment.owner.username, comment.owner.followed_by_viewer))
+        data.append((likes_post, comments_post))
     return jsonify(data)
 
 
@@ -198,4 +219,4 @@ def get_top_hashtag():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="192.168.1.21", port=5000)
