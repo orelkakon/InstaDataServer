@@ -218,5 +218,18 @@ def get_top_hashtag():
     return jsonify(result)
 
 
+@app.route('/getsimilarusers', methods=['POST'])
+@cross_origin()
+def get_similar_users():
+    write_log('info', 'start getsimilarusers route')
+    username = request.json["username"]
+    profile = get_profile(username)
+    users = profile.get_similar_accounts()
+    data = []
+    for user in users:
+        data.append(user.username)
+    return jsonify(data)
+
+
 if __name__ == '__main__':
-    app.run(host="192.168.1.21", port=5000)
+    app.run(host="172.20.10.5", port=5000)
